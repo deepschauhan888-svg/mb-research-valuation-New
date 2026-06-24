@@ -1,0 +1,59 @@
+import * as XLSX from 'xlsx';
+import { Valuation } from '@/types/valuation';
+
+const MONTH_MAP: Record<number, string> = {
+  1:'January',2:'February',3:'March',4:'April',5:'May',6:'June',
+  7:'July',8:'August',9:'September',10:'October',11:'November',12:'December'
+};
+
+function getQuarter(month: string): string {
+  const idx = Object.values(MONTH_MAP).indexOf(month);
+  if (idx < 3) return 'Q1';
+  if (idx < 6) return 'Q2';
+  if (idx < 9) return 'Q3';
+  return 'Q4';
+}
+
+function parseDate(val: unknown): string {
+  if (!val) return '';
+  if (typeof val === 'number') {
+    const d = XLSX.SSF.parse_date_code(val);
+    if (d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  return String(val);
+}
+
+export function parseExcel(buffer: ArrayBuffer): Valuation[] {
+  const wb = XLSX.read(buffer, { type: 'array', cellDates: false });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: '' });
+
+  return rows.map((row) => {
+    const sentDate = parseDate(row['Sent Date'] ?? row['sent_date'] ?? '');
+    let month = String(row['Month'] ?? row['month'] ?? '');
+    let year = Number(row['Year'] ?? row['year'] ?? new Date().getFullYear());
+    if (!month && sentDate) {
+      const d = new Date(sentDate);
+      month = MONTH_MAP[d.getMonth() + 1] || '';
+      year = d.getFullYear();
+    }
+    const propType = String(row['Property Type'] ?? row['property_type'] ?? 'Residential');
+    const reco = String(row['Recommendation Type'] ?? row['recommendation_type'] ?? 'Buy');
+    return {
+      property_name: String(row['Property Name'] ?? row['property_name'] ?? ''),
+      developer_name: String(row['Developer Name'] ?? row['developer_name'] ?? ''),
+      city: String(row['City'] ?? row['city'] ?? ''),
+      property_type: propType.includes('Commercial') ? 'Commercial' : 'Residential',
+      unit_type: String(row['Unit Type'] ?? row['unit_type'] ?? ''),
+      sbua: Number(row['SBUA'] ?? row['sbua'] ?? 0),
+      carpet_area: Number(row['Carpet Area'] ?? row['carpet_area'] ?? 0),
+      received_date: parseDate(row['Received Date'] ?? row['received_date'] ?? ''),
+      sent_date: sentDate,
+      recommendation_type: (['Buy','Sell','Investment'].includes(reco) ? reco : 'Buy') as 'Buy'|'Sell'|'Investment',
+      mb_research_value: Number(row['MB Research Value'] ?? row['mb_research_value'] ?? 0),
+      month,
+      year,
+      quarter: String(row['Quarter'] ?? row['quarter'] ?? getQuarter(month)),
+    } as Valuation;
+  }).filter(v => v.property_name);
+}
