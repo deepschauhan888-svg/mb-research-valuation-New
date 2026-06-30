@@ -188,3 +188,100 @@ a { color: inherit; text-decoration: none; }
 .reveal      { opacity: 0; transform: translateY(32px); }
 .reveal-left { opacity: 0; transform: translateX(-32px); }
 .reveal-scale{ opacity: 0; transform: scale(0.94); }
+
+/* ── Premium interaction layer ──────────────────────────────────────────── */
+
+/* Subtle grain texture overlay */
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  opacity: 0.025; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Mesh gradient blob */
+.mesh-blob {
+  position: absolute; border-radius: 50%; filter: blur(80px);
+  pointer-events: none;
+}
+
+/* Gradient animated border card */
+.gradient-border {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+}
+.gradient-border::before {
+  content: "";
+  position: absolute; inset: 0; border-radius: 20px; padding: 1px;
+  background: linear-gradient(135deg, transparent 40%, rgba(200,16,46,0.45) 50%, transparent 60%);
+  background-size: 250% 250%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0; transition: opacity 0.4s ease;
+  animation: borderSheen 3s linear infinite paused;
+}
+.gradient-border:hover::before { opacity: 1; animation-play-state: running; }
+@keyframes borderSheen {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* Tilt card (JS sets --rx / --ry) */
+.tilt-card {
+  --rx: 0deg; --ry: 0deg;
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.15s ease-out;
+  transform-style: preserve-3d;
+}
+
+/* Glow pulse ring for map markers / active steps */
+@keyframes glowPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(200,16,46,0.35); }
+  100% { box-shadow: 0 0 0 14px rgba(200,16,46,0); }
+}
+.glow-pulse { animation: glowPulse 1.8s ease-out infinite; }
+
+/* Word-stagger reveal helper */
+.word-reveal span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(110%);
+}
+
+/* Rolling digit */
+.roll-digit {
+  display: inline-block;
+  overflow: hidden;
+  height: 1em;
+  vertical-align: top;
+}
+
+/* Particle dot */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(200,16,46,0.4);
+  pointer-events: none;
+}
+
+/* Animated SVG line draw */
+.draw-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.23,1,0.32,1);
+}
+.draw-line.in-view { stroke-dashoffset: 0; }
+
+/* Ripple click feedback */
+.ripple-btn { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  transform: scale(0); animation: rippleAnim 0.6s ease-out;
+  pointer-events: none;
+}
+@keyframes rippleAnim { to { transform: scale(3); opacity: 0; } }
+
+/* Hero word initial state (GSAP overrides on mount) */
+.hero-word { opacity: 0; transform: translateY(110%); }

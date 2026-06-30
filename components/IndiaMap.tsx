@@ -215,25 +215,47 @@ export default function IndiaMap({ cityStats }: Props) {
             </svg>
           )}
 
-          {/* Tooltip */}
-          {tip && hovCity && !loading && (
-            <div style={{
-              position: "absolute", left: tip.x + 14, top: tip.y - 10,
-              background: "#0F172A", color: "#fff",
-              padding: "6px 12px", borderRadius: 8,
-              fontSize: 12, fontWeight: 600,
-              pointerEvents: "none", whiteSpace: "nowrap",
-              boxShadow: "0 4px 16px rgba(15,23,42,0.25)", zIndex: 20,
-            }}>
-              {hovCity}
-              {(() => {
-                const s = statsMap.get(hovCity);
-                return s?.total ? ` · ${s.total} assignment${s.total !== 1 ? "s" : ""}` : " · No data yet";
-              })()}
-            </div>
-          )}
+          {/* Animated tooltip preview */}
+          {tip && hovCity && !loading && (() => {
+            const s = statsMap.get(hovCity);
+            const hasData = !!s && s.total > 0;
+            return (
+              <div
+                key={hovCity}
+                style={{
+                  position: "absolute", left: tip.x + 16, top: tip.y - 14,
+                  background: "#0F172A", color: "#fff",
+                  padding: hasData ? "12px 16px" : "8px 14px",
+                  borderRadius: 12, minWidth: hasData ? 160 : undefined,
+                  pointerEvents: "none",
+                  boxShadow: "0 12px 32px rgba(15,23,42,0.3)", zIndex: 20,
+                  animation: "tooltipIn 0.18s cubic-bezier(0.23,1,0.32,1)",
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: hasData ? 8 : 0, whiteSpace: "nowrap" }}>{hovCity}</div>
+                {hasData ? (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 16, fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>
+                      <span>Assignments</span><span style={{ color: "#fff", fontWeight: 700 }}>{s!.total}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 16, fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>
+                      <span>Portfolio</span><span style={{ color: "#10B981", fontWeight: 700 }}>{formatCrore(s!.portfolio_value)}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 3, height: 4, borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ flex: s!.buy || 0.001, background: "#10B981" }} />
+                      <div style={{ flex: s!.sell || 0.001, background: "#EF4444" }} />
+                      <div style={{ flex: s!.investment || 0.001, background: "#F59E0B" }} />
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>No data yet</span>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
+      <style>{`@keyframes tooltipIn { from { opacity: 0; transform: translateY(4px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }`}</style>
 
       {/* ── Stats panel ── */}
       <div style={{ position: "sticky", top: 88 }}>

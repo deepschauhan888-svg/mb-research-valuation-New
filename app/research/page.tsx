@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Mail, TrendingUp, BarChart3, Activity, FileText, Newspaper } from "lucide-react";
 
 function useReveal(sel: string, stagger = 0.1) {
@@ -36,6 +36,62 @@ const PUBLICATIONS = [
     period: "Ongoing", pages: "Varies" },
 ];
 
+/* ── Publication card with 3D book-rotate hover ─────────────────────────────── */
+type Pub = typeof PUBLICATIONS[number];
+function PublicationCard({ p }: { p: Pub }) {
+  const Icon = p.icon;
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      className="pub-card"
+      data-cursor="hover"
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        opacity: 0, background: "#fff", border: `1px solid ${hov ? p.color + "40" : "#E5E7EB"}`,
+        borderRadius: 20, padding: 40, cursor: "default", position: "relative", overflow: "hidden",
+        transition: "border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.23,1,0.32,1)",
+        boxShadow: hov ? "0 24px 64px rgba(0,0,0,0.09)" : "none",
+        transform: hov ? "translateY(-6px)" : "none",
+      }}
+    >
+      {/* Page-flip corner */}
+      <div style={{
+        position: "absolute", top: 0, right: 0, width: 0, height: 0,
+        borderStyle: "solid", borderWidth: hov ? "0 38px 38px 0" : "0 0 0 0",
+        borderColor: `transparent ${p.color}22 transparent transparent`,
+        transition: "border-width 0.35s cubic-bezier(0.23,1,0.32,1)",
+      }} />
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+        <div
+          style={{
+            width: 52, height: 52, background: `${p.color}12`, borderRadius: 14,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "transform 0.5s cubic-bezier(0.34,1.56,0.64,1)",
+            transform: hov ? "rotateY(20deg) rotateX(-6deg) scale(1.06)" : "rotateY(0deg) rotateX(0deg) scale(1)",
+            transformStyle: "preserve-3d",
+          }}
+        >
+          <Icon size={24} style={{ color: p.color }} />
+        </div>
+        <span style={{ fontSize: 10, fontWeight: 700, color: p.color, background: `${p.color}10`, padding: "5px 12px", borderRadius: 20, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "Inter,sans-serif" }}>{p.tag}</span>
+      </div>
+      <h3 style={{ fontSize: 26, fontWeight: 500, color: "#0A0A0A", marginBottom: 14, fontFamily: "Cormorant Garamond,serif", letterSpacing: "-0.015em" }}>{p.title}</h3>
+      <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.75, marginBottom: 28, fontFamily: "Inter,sans-serif" }}>{p.desc}</p>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
+        <div style={{ display: "flex", gap: 16, fontSize: 12, color: "#9CA3AF", fontFamily: "DM Mono,monospace" }}>
+          <span>{p.period}</span><span>·</span><span>{p.pages}</span>
+        </div>
+        <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: p.color, fontFamily: "Inter,sans-serif", transition: "gap 0.2s" }}>
+          Access Report <ArrowRight size={14} style={{ transform: hov ? "translateX(3px)" : "none", transition: "transform 0.25s" }} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function ResearchPage() {
   const heroRef = useReveal(".hero-el", 0.12);
   const pubRef  = useReveal(".pub-card", 0.1);
@@ -61,31 +117,7 @@ export default function ResearchPage() {
       <section className="section" style={{ paddingTop: 20 }} ref={pubRef as React.RefObject<HTMLDivElement>}>
         <div className="container">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
-            {PUBLICATIONS.map(p => {
-              const Icon = p.icon;
-              return (
-                <div key={p.title} className="pub-card" style={{ opacity: 0, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 20, padding: 40, transition: "all 0.35s cubic-bezier(0.23,1,0.32,1)", cursor: "default" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 56px rgba(0,0,0,0.08)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-5px)"; (e.currentTarget as HTMLElement).style.borderColor = p.color + "40"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.borderColor = "#E5E7EB"; }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
-                    <div style={{ width: 52, height: 52, background: `${p.color}12`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Icon size={24} style={{ color: p.color }} />
-                    </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: p.color, background: `${p.color}10`, padding: "5px 12px", borderRadius: 20, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "Inter,sans-serif" }}>{p.tag}</span>
-                  </div>
-                  <h3 style={{ fontSize: 26, fontWeight: 500, color: "#0A0A0A", marginBottom: 14, fontFamily: "Cormorant Garamond,serif", letterSpacing: "-0.015em" }}>{p.title}</h3>
-                  <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.75, marginBottom: 28, fontFamily: "Inter,sans-serif" }}>{p.desc}</p>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
-                    <div style={{ display: "flex", gap: 16, fontSize: 12, color: "#9CA3AF", fontFamily: "DM Mono,monospace" }}>
-                      <span>{p.period}</span><span>·</span><span>{p.pages}</span>
-                    </div>
-                    <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: p.color, fontFamily: "Inter,sans-serif" }}>
-                      Access Report <ArrowRight size={14} />
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+            {PUBLICATIONS.map(p => <PublicationCard key={p.title} p={p} />)}
           </div>
         </div>
       </section>

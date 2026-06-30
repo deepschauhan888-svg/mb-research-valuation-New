@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Building2, TrendingUp, BarChart3, Shield, Eye, Award, FileText, MapPin, ChevronRight, Quote } from "lucide-react";
+import Magnetic from "@/components/Magnetic";
 
 /* ── GSAP animate-in on scroll ───────────────────────────────────────────── */
 function useReveal(selector: string, stagger = 0.12) {
@@ -51,6 +52,35 @@ function Counter({ to, prefix = "", suffix = "", dur = 2 }: { to: number; prefix
   return <span ref={ref}>{prefix}{val.toLocaleString("en-IN")}{suffix}</span>;
 }
 
+/* ── Floating ambient particles ──────────────────────────────────────────── */
+function ParticleField() {
+  const particles = useRef(
+    Array.from({ length: 14 }, (_, i) => ({
+      id: i,
+      size: 2 + Math.round(Math.random() * 3),
+      top: Math.round(Math.random() * 100),
+      left: Math.round(Math.random() * 100),
+      dur: 6 + Math.round(Math.random() * 6),
+      delay: Math.round(Math.random() * 4),
+    }))
+  ).current;
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className="particle"
+          style={{
+            width: p.size, height: p.size,
+            top: `${p.top}%`, left: `${p.left}%`,
+            animation: `floatC ${p.dur}s ease-in-out infinite ${p.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ── Floating stat card ──────────────────────────────────────────────────── */
 function FloatCard({ label, value, unit, style, anim }: {
   label: string; value: string; unit?: string;
@@ -78,21 +108,56 @@ function ServiceCard({ icon: Icon, title, desc, items, href, color }: {
   items: string[]; href: string; color: string;
 }) {
   const [hov, setHov] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    const ry = (px - 0.5) * 8;
+    const rx = (0.5 - py) * 8;
+    el.style.setProperty("--rx", `${rx}deg`);
+    el.style.setProperty("--ry", `${ry}deg`);
+    el.style.setProperty("--mx", `${px * 100}%`);
+    el.style.setProperty("--my", `${py * 100}%`);
+  };
+  const onLeave = () => {
+    const el = cardRef.current;
+    if (!el) return;
+    el.style.setProperty("--rx", "0deg");
+    el.style.setProperty("--ry", "0deg");
+    setHov(false);
+  };
+
   return (
     <div
+      ref={cardRef}
+      className="tilt-card"
       onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      data-cursor="hover"
       style={{
-        background: "#fff", border: `1px solid ${hov ? color + "40" : "#E5E7EB"}`,
+        background: hov
+          ? `radial-gradient(circle at var(--mx,50%) var(--my,50%), ${color}08 0%, #fff 60%)`
+          : "#fff",
+        border: `1px solid ${hov ? color + "40" : "#E5E7EB"}`,
         borderRadius: 20, padding: "40px 36px", cursor: "default",
-        transition: "all 0.4s cubic-bezier(0.23,1,0.32,1)",
-        boxShadow: hov ? `0 24px 64px rgba(0,0,0,0.09)` : "0 2px 8px rgba(0,0,0,0.03)",
-        transform: hov ? "translateY(-6px)" : "none", position: "relative", overflow: "hidden",
+        transition: "background 0.3s ease, border-color 0.4s ease, box-shadow 0.4s ease",
+        boxShadow: hov ? `0 28px 70px rgba(0,0,0,0.10)` : "0 2px 8px rgba(0,0,0,0.03)",
+        position: "relative", overflow: "hidden",
       }}
     >
       {/* Corner accent */}
-      <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `${color}08`, borderBottomLeftRadius: 80 }} />
-      <div style={{ width: 48, height: 48, background: `${color}12`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+      <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `${color}08`, borderBottomLeftRadius: 80, transition: "transform 0.4s ease", transform: hov ? "scale(1.3)" : "scale(1)" }} />
+      <div style={{
+        width: 48, height: 48, background: `${color}12`, borderRadius: 12,
+        display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
+        transition: "transform 0.45s cubic-bezier(0.34,1.56,0.64,1)",
+        transform: hov ? "rotate(-8deg) scale(1.08)" : "rotate(0deg) scale(1)",
+      }}>
         <Icon size={22} style={{ color }} />
       </div>
       <h3 style={{ fontSize: 22, fontWeight: 500, color: "#0A0A0A", marginBottom: 12, fontFamily: "Cormorant Garamond,serif", letterSpacing: "-0.01em" }}>{title}</h3>
@@ -113,6 +178,34 @@ function ServiceCard({ icon: Icon, title, desc, items, href, color }: {
   );
 }
 
+/* ── Ecosystem network visualization (background of Why section) ──────────── */
+function NetworkVisualization() {
+  const nodes = [
+    [8, 20], [22, 12], [14, 55], [30, 70], [50, 15],
+    [62, 45], [78, 18], [88, 60], [70, 80], [45, 85],
+    [92, 30], [5, 80],
+  ];
+  const lines = [[0,1],[1,4],[4,6],[6,10],[5,6],[2,3],[3,9],[4,5],[5,8],[7,8],[2,11],[9,8]];
+  return (
+    <svg
+      viewBox="0 0 100 100" preserveAspectRatio="none"
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.35, pointerEvents: "none" }}
+    >
+      {lines.map(([a, b], i) => (
+        <line key={i}
+          x1={nodes[a][0]} y1={nodes[a][1]} x2={nodes[b][0]} y2={nodes[b][1]}
+          stroke="#C8102E" strokeWidth="0.12"
+          style={{ animation: `shimmer 4s ease-in-out infinite ${i * 0.2}s` }}
+        />
+      ))}
+      {nodes.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r={0.6} fill="#0A0A0A"
+          style={{ animation: `floatC ${5 + (i % 4)}s ease-in-out infinite ${i * 0.3}s` }} />
+      ))}
+    </svg>
+  );
+}
+
 /* ── Why point ───────────────────────────────────────────────────────────── */
 function WhyPoint({ icon: Icon, title, desc, delay }: { icon: React.ElementType; title: string; desc: string; delay: string }) {
   return (
@@ -128,13 +221,35 @@ function WhyPoint({ icon: Icon, title, desc, delay }: { icon: React.ElementType;
 
 /* ── Process step ────────────────────────────────────────────────────────── */
 function ProcessStep({ n, title, desc, last }: { n: string; title: string; desc: string; last?: boolean }) {
+  const [active, setActive] = useState(false);
+  const lineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!lineRef.current) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.6 });
+    obs.observe(lineRef.current);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div className="reveal" style={{ display: "flex", gap: 28 }}>
+    <div ref={lineRef} className="reveal" style={{ display: "flex", gap: 28 }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#fff", border: "2px solid #C8102E", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#C8102E", fontFamily: "DM Mono,monospace" }}>{n}</span>
+        <div
+          className={active ? "glow-pulse" : ""}
+          style={{
+            width: 40, height: 40, borderRadius: "50%", background: active ? "#C8102E" : "#fff",
+            border: "2px solid #C8102E", display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 1, transition: "background 0.5s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+            transform: active ? "scale(1.06)" : "scale(1)",
+          }}
+        >
+          <span style={{ fontSize: 12, fontWeight: 700, color: active ? "#fff" : "#C8102E", fontFamily: "DM Mono,monospace", transition: "color 0.4s" }}>{n}</span>
         </div>
-        {!last && <div style={{ width: 1, flex: 1, background: "#E5E7EB", marginTop: 8 }} />}
+        {!last && (
+          <div style={{ width: 1, flex: 1, marginTop: 8, background: "#E5E7EB", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: active ? "100%" : "0%", background: "#C8102E", transition: "height 0.8s cubic-bezier(0.23,1,0.32,1) 0.15s" }} />
+          </div>
+        )}
       </div>
       <div style={{ paddingBottom: last ? 0 : 40 }}>
         <h4 style={{ fontSize: 18, fontWeight: 500, color: "#0A0A0A", marginBottom: 8, fontFamily: "Cormorant Garamond,serif" }}>{title}</h4>
@@ -161,11 +276,11 @@ export default function HomePage() {
       if (!heroRef.current) return;
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
       tl.fromTo(".hero-badge",   { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6 }, 0.2)
-        .fromTo(".hero-h1",      { opacity: 0, y: 48 }, { opacity: 1, y: 0, duration: 1.0 }, 0.45)
-        .fromTo(".hero-sub",     { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8 }, 0.85)
-        .fromTo(".hero-ctas",    { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 1.05)
-        .fromTo(".hero-stats",   { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 1.2)
-        .fromTo(".float-card",   { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, stagger: 0.12, duration: 0.6 }, 1.3);
+        .fromTo(".hero-word",    { opacity: 0, y: "110%" }, { opacity: 1, y: "0%", duration: 0.9, stagger: 0.05 }, 0.4)
+        .fromTo(".hero-sub",     { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8 }, 1.0)
+        .fromTo(".hero-ctas",    { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 1.2)
+        .fromTo(".hero-stats",   { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 1.35)
+        .fromTo(".float-card",   { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, stagger: 0.12, duration: 0.6 }, 1.45);
     };
     init();
   }, []);
@@ -207,8 +322,14 @@ export default function HomePage() {
 
       {/* ══ HERO ══════════════════════════════════════════════════════════ */}
       <section ref={heroRef} style={{ minHeight: "calc(100vh - 68px)", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", padding: "80px 0 60px", overflow: "hidden" }}>
+        {/* Grain */}
+        <div className="grain" />
         {/* Dot grid bg */}
         <div className="dot-grid" style={{ position: "absolute", inset: 0, opacity: 0.35, pointerEvents: "none" }} />
+        {/* Mesh blobs */}
+        <div className="mesh-blob" style={{ width: 420, height: 420, top: "-12%", left: "-6%", background: "radial-gradient(circle, rgba(200,16,46,0.07) 0%, transparent 70%)", animation: "floatA 9s ease-in-out infinite" }} />
+        <div className="mesh-blob" style={{ width: 380, height: 380, bottom: "-10%", right: "-4%", background: "radial-gradient(circle, rgba(15,23,42,0.05) 0%, transparent 70%)", animation: "floatB 11s ease-in-out infinite 1s" }} />
+        <ParticleField />
 
         {/* Red glow */}
         <div style={{ position: "absolute", top: "-10%", left: "50%", transform: "translateX(-50%)", width: "60%", height: "50%", background: "radial-gradient(ellipse, rgba(200,16,46,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
@@ -223,12 +344,13 @@ export default function HomePage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 60, alignItems: "flex-start" }}>
             <div>
               {/* Main headline */}
-              <h1 className="hero-h1" style={{ opacity: 0, fontFamily: "Cormorant Garamond,serif", fontWeight: 400, fontSize: "clamp(52px, 7.5vw, 108px)", lineHeight: 1.0, letterSpacing: "-0.025em", color: "#0A0A0A", marginBottom: 28, maxWidth: 760 }}>
-                Intelligence
-                <br />
-                <em style={{ fontStyle: "italic", color: "#C8102E" }}>Behind</em> Every
-                <br />
-                Square Foot.
+              <h1 style={{ fontFamily: "Cormorant Garamond,serif", fontWeight: 400, fontSize: "clamp(52px, 7.5vw, 108px)", lineHeight: 1.0, letterSpacing: "-0.025em", color: "#0A0A0A", marginBottom: 28, maxWidth: 760 }}>
+                <span style={{ display: "block", overflow: "hidden" }}><span className="hero-word" style={{ display: "inline-block" }}>Intelligence</span></span>
+                <span style={{ display: "block", overflow: "hidden" }}>
+                  <span className="hero-word" style={{ display: "inline-block", fontStyle: "italic", color: "#C8102E" }}>Behind</span>{" "}
+                  <span className="hero-word" style={{ display: "inline-block" }}>Every</span>
+                </span>
+                <span style={{ display: "block", overflow: "hidden" }}><span className="hero-word" style={{ display: "inline-block" }}>Square Foot.</span></span>
               </h1>
 
               <p className="hero-sub" style={{ opacity: 0, fontSize: 18, lineHeight: 1.75, color: "#6B7280", maxWidth: 520, marginBottom: 44, fontFamily: "Inter,sans-serif" }}>
@@ -237,16 +359,20 @@ export default function HomePage() {
 
               {/* CTAs */}
               <div className="hero-ctas" style={{ opacity: 0, display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 64 }}>
-                <Link href="/enquiry" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#0A0A0A", color: "#fff", padding: "15px 30px", borderRadius: 10, fontSize: 15, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", fontFamily: "Inter,sans-serif" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "#C8102E"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(200,16,46,0.3)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "#0A0A0A"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                  Request a Valuation <ArrowRight size={16} />
-                </Link>
-                <Link href="/research" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", color: "#0A0A0A", padding: "15px 30px", borderRadius: 10, fontSize: 15, fontWeight: 600, textDecoration: "none", border: "1.5px solid #E5E7EB", transition: "all 0.25s", fontFamily: "Inter,sans-serif" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#0A0A0A"; e.currentTarget.style.background = "#F9FAFB"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "transparent"; }}>
-                  Explore Research
-                </Link>
+                <Magnetic strength={0.3}>
+                  <Link href="/enquiry" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#0A0A0A", color: "#fff", padding: "15px 30px", borderRadius: 10, fontSize: 15, fontWeight: 600, textDecoration: "none", transition: "background 0.25s, box-shadow 0.25s", fontFamily: "Inter,sans-serif" }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#C8102E"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(200,16,46,0.3)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "#0A0A0A"; e.currentTarget.style.boxShadow = "none"; }}>
+                    Request a Valuation <ArrowRight size={16} />
+                  </Link>
+                </Magnetic>
+                <Magnetic strength={0.3}>
+                  <Link href="/research" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", color: "#0A0A0A", padding: "15px 30px", borderRadius: 10, fontSize: 15, fontWeight: 600, textDecoration: "none", border: "1.5px solid #E5E7EB", transition: "border-color 0.25s, background 0.25s", fontFamily: "Inter,sans-serif" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = "#0A0A0A"; e.currentTarget.style.background = "#F9FAFB"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "transparent"; }}>
+                    Explore Research
+                  </Link>
+                </Magnetic>
               </div>
 
               {/* Stats row */}
@@ -319,8 +445,9 @@ export default function HomePage() {
       </section>
 
       {/* ══ WHY MB RESEARCH ═══════════════════════════════════════════════ */}
-      <section className="section" style={{ background: "#F9FAFB", borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB" }} ref={whyRef as React.RefObject<HTMLDivElement>}>
-        <div style={S(0)}>
+      <section className="section" style={{ background: "#F9FAFB", borderTop: "1px solid #E5E7EB", borderBottom: "1px solid #E5E7EB", position: "relative", overflow: "hidden" }} ref={whyRef as React.RefObject<HTMLDivElement>}>
+        <NetworkVisualization />
+        <div style={{ ...S(0), position: "relative" }}>
           <div style={{ textAlign: "center", marginBottom: 72 }}>
             <p className="t-label" style={{ marginBottom: 14 }}>Why Choose Us</p>
             <h2 style={{ fontFamily: "Cormorant Garamond,serif", fontSize: "clamp(36px,4vw,56px)", fontWeight: 400, letterSpacing: "-0.02em", color: "#0A0A0A", lineHeight: 1.1, maxWidth: 540, margin: "0 auto" }}>
