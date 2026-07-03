@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import * as XLSX from "xlsx";
 import { useStore } from "@/lib/store";
 import { computeKPIs, computeCityStats, computeMonthlyData, formatCrore } from "@/lib/analytics";
 import { Valuation } from "@/types/valuation";
@@ -8,18 +9,43 @@ import KPICards from "@/components/KPICards";
 import { MonthlyTrendChart, RecommendationChart, PropertySplitChart } from "@/components/Charts";
 import UploadExcel from "@/components/UploadExcel";
 import DataTable from "@/components/DataTable";
-import { LogOut, LayoutDashboard, Upload, Table2, Map, ChevronRight, Trash2, AlertTriangle } from "lucide-react";
+import { LogOut, LayoutDashboard, Upload, Table2, Map, ChevronRight, Trash2, AlertTriangle, Calendar, Download, FileSpreadsheet } from "lucide-react";
 
-type Tab = "overview" | "upload" | "data" | "cities";
+type Tab = "overview" | "upload" | "data" | "cities" | "monthly";
 
 export default function DashboardPage() {
-  const router = useRouter();
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8FAFC" }}>
+        <div style={{ width: 32, height: 32, border: "2.5px solid #E2E8F0", borderTopColor: "#C8102E", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <DashboardInner />
+    </Suspense>
+  );
+}
+
+function DashboardInner() {
+  const router      = useRouter();
+  const searchParams = useSearchParams();
   const { isLoggedIn, analystEmail, valuations, addValuations, setValuations, logout } = useStore();
-  const [tab, setTab]           = useState<Tab>("overview");
+
+  const initialTab = (searchParams.get("tab") as Tab) || "overview";
+  const [tab, setTab]             = useState<Tab>(initialTab);
   const [showClear, setShowClear] = useState(false);
   const [uploadCount, setUploadCount] = useState(0);
+  const [misMonth, setMisMonth]   = useState("June");
+  const [misYear,  setMisYear]    = useState(2025);
+
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const YEARS  = [2023, 2024, 2025, 2026];
 
   useEffect(() => { if (!isLoggedIn) router.push("/analyst-login"); }, [isLoggedIn, router]);
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab;
+    if (t) setTab(t);
+  }, [searchParams]);
 
   const kpi       = useMemo(() => computeKPIs(valuations), [valuations]);
   const cityStats = useMemo(() => computeCityStats(valuations), [valuations]);
@@ -36,10 +62,11 @@ export default function DashboardPage() {
   if (!isLoggedIn) return null;
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: "overview", label: "Overview",    icon: LayoutDashboard },
-    { id: "upload",   label: "Upload Data", icon: Upload },
-    { id: "data",     label: "All Records", icon: Table2 },
-    { id: "cities",   label: "City Stats",  icon: Map },
+    { id: "overview", label: "Overview",        icon: LayoutDashboard },
+    { id: "upload",   label: "Upload Data",     icon: Upload },
+    { id: "data",     label: "All Records",     icon: Table2 },
+    { id: "cities",   label: "City Stats",      icon: Map },
+    { id: "monthly",  label: "Monthly Summary", icon: Calendar },
   ];
 
   const sidebar: React.CSSProperties = {
@@ -252,6 +279,176 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+
+          {/* ── MONTHLY SUMMARY ── */}
+          {tab === "monthly" && (() => {
+            const filtered = valuations.filter(v => v.month === misMonth && v.year === misYear);
+            const mkpi     = computeKPIs(filtered);
+
+            const exportExcel = () => {
+              if (!filtered.length) return;
+              const rows = filtered.map(v => ({
+                "Property Name": v.property_name, "Developer": v.developer_name, "City": v.city,
+                "Property Type": v.property_type, "Unit Type": v.unit_type,
+                "SBUA (sf)": v.sbua, "Carpet Area (sf)": v.carpet_area,
+                "Received Date": v.received_date, "Sent Date": v.sent_date,
+                "Recommendation": v.recommendation_type, "MB Research Value": v.mb_research_value,
+                "Month": v.month, "Year": v.year, "Quarter": v.quarter,
+              }));
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), `${misMonth} ${misYear}`);
+              const summary = [["MB Research — Monthly Summary"], [`Period: ${misMonth} ${misYear}`], [],
+                ["Total Valuations", mkpi.total_valuations], ["Portfolio Value", mkpi.portfolio_value],
+                ["Buy", mkpi.buy_count], ["Sell", mkpi.sell_count], ["Investment", mkpi.investment_count],
+                ["Residential", mkpi.residential_count], ["Commercial", mkpi.commercial_count]];
+              XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), "Summary");
+              XLSX.writeFile(wb, `MB_Research_${misMonth}_${misYear}.xlsx`);
+            };
+
+            const exportTxt = () => {
+              const lines = [
+                "MB RESEARCH VALUATION — MONTHLY REPORT",
+                `Period: ${misMonth} ${misYear}`,
+                `Generated: ${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`,
+                "", "═══════════════════════════════",
+                `Total Valuations          : ${mkpi.total_valuations}`,
+                `Portfolio Value           : ${formatCrore(mkpi.portfolio_value)}`,
+                `Buy Recommendations       : ${mkpi.buy_count}`,
+                `Sell Recommendations      : ${mkpi.sell_count}`,
+                `Investment Recommendations: ${mkpi.investment_count}`,
+                `Residential               : ${mkpi.residential_count}`,
+                `Commercial                : ${mkpi.commercial_count}`,
+                "", "═══════════════════════════════",
+                ...filtered.map((v, i) => `${String(i+1).padStart(3,"0")}. ${v.property_name} | ${v.city} | ${v.recommendation_type} | ${formatCrore(v.mb_research_value)}`),
+                "", "MB Research Valuation · research@mbresearch.in",
+              ];
+              const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+              const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+              a.download = `MB_Report_${misMonth}_${misYear}.txt`; a.click();
+            };
+
+            const selStyle: React.CSSProperties = {
+              background: "#fff", border: "1.5px solid #E2E8F0", borderRadius: 8,
+              padding: "9px 12px", fontSize: 13, color: "#0F172A", outline: "none", cursor: "pointer",
+            };
+            const recoBadge = (r: string) => ({
+              padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+              background: r === "Buy" ? "#ECFDF5" : r === "Sell" ? "#FEF2F2" : "#FFFBEB",
+              color: r === "Buy" ? "#059669" : r === "Sell" ? "#DC2626" : "#D97706",
+            });
+
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {/* Filter bar */}
+                <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <select value={misMonth} onChange={e => setMisMonth(e.target.value)} style={selStyle}>
+                      {MONTHS.map(m => <option key={m}>{m}</option>)}
+                    </select>
+                    <select value={misYear} onChange={e => setMisYear(Number(e.target.value))} style={selStyle}>
+                      {YEARS.map(y => <option key={y}>{y}</option>)}
+                    </select>
+                    <div style={{ padding: "9px 14px", background: filtered.length ? "#ECFDF5" : "#F8FAFC", border: `1px solid ${filtered.length ? "#A7F3D0" : "#E2E8F0"}`, borderRadius: 8, fontSize: 13, color: filtered.length ? "#059669" : "#94A3B8", fontWeight: 600 }}>
+                      {filtered.length} record{filtered.length !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+                  {filtered.length > 0 && (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={exportExcel} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer" }}>
+                        <FileSpreadsheet size={14} style={{ color: "#059669" }} /> Export Excel
+                      </button>
+                      <button onClick={exportTxt} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "#0F172A", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer" }}>
+                        <Download size={14} /> Download Report
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {filtered.length === 0 ? (
+                  <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "64px 32px", textAlign: "center" }}>
+                    <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
+                    <p style={{ fontSize: 16, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>No data for {misMonth} {misYear}</p>
+                    <p style={{ fontSize: 13, color: "#94A3B8" }}>Upload assignments with matching month and year to see this report.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* KPI grid */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+                      {[
+                        { label: "Total Valuations",          val: String(mkpi.total_valuations),           color: "#0F172A" },
+                        { label: "Portfolio Value",            val: formatCrore(mkpi.portfolio_value),       color: "#059669" },
+                        { label: "Buy Recommendations",        val: String(mkpi.buy_count),                  color: "#059669" },
+                        { label: "Sell Recommendations",       val: String(mkpi.sell_count),                 color: "#DC2626" },
+                        { label: "Investment Recommendations", val: String(mkpi.investment_count),           color: "#D97706" },
+                        { label: "Residential Assignments",    val: String(mkpi.residential_count),          color: "#1D4ED8" },
+                        { label: "Commercial Assignments",     val: String(mkpi.commercial_count),           color: "#7C3AED" },
+                      ].map(k => (
+                        <div key={k.label} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "20px 18px" }}>
+                          <div style={{ fontSize: 26, fontWeight: 800, color: k.color, letterSpacing: "-0.03em", marginBottom: 6 }}>{k.val}</div>
+                          <div style={{ fontSize: 11, color: "#94A3B8", fontWeight: 500 }}>{k.label}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Charts */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                      <MonthlyTrendChart monthly={monthly} />
+                      <RecommendationChart buy={mkpi.buy_count} sell={mkpi.sell_count} investment={mkpi.investment_count} />
+                      <PropertySplitChart residential={mkpi.residential_count} commercial={mkpi.commercial_count} />
+                    </div>
+
+                    {/* Table */}
+                    <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, overflow: "hidden" }}>
+                      <div style={{ padding: "18px 20px", borderBottom: "1px solid #F1F5F9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Assignments — {misMonth} {misYear}</h3>
+                        <span style={{ fontSize: 12, color: "#94A3B8" }}>{filtered.length} records</span>
+                      </div>
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead>
+                            <tr style={{ background: "#F8FAFC" }}>
+                              {["#","Property","City","Type","Recommendation","Value"].map(h => (
+                                <th key={h} style={{ textAlign: "left", padding: "10px 18px", fontSize: 11, fontWeight: 700, color: "#94A3B8", letterSpacing: "0.08em", textTransform: "uppercase", borderBottom: "1px solid #F1F5F9" }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filtered.map((v, i) => (
+                              <tr key={i} style={{ borderBottom: "1px solid #F8FAFC" }}
+                                onMouseEnter={e => e.currentTarget.style.background = "#FAFAFA"}
+                                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                                <td style={{ padding: "14px 18px", fontSize: 12, color: "#CBD5E1", fontFamily: "monospace" }}>{String(i+1).padStart(2,"0")}</td>
+                                <td style={{ padding: "14px 18px" }}>
+                                  <div style={{ fontWeight: 600, fontSize: 14, color: "#0F172A" }}>{v.property_name}</div>
+                                  <div style={{ fontSize: 11, color: "#94A3B8" }}>{v.developer_name}</div>
+                                </td>
+                                <td style={{ padding: "14px 18px", fontSize: 13, color: "#374151" }}>{v.city}</td>
+                                <td style={{ padding: "14px 18px" }}>
+                                  <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, background: v.property_type === "Residential" ? "#EFF6FF" : "#F5F3FF", color: v.property_type === "Residential" ? "#1D4ED8" : "#7C3AED" }}>
+                                    {v.property_type}
+                                  </span>
+                                </td>
+                                <td style={{ padding: "14px 18px" }}><span style={recoBadge(v.recommendation_type)}>{v.recommendation_type}</span></td>
+                                <td style={{ padding: "14px 18px", fontWeight: 700, fontSize: 14, color: "#0F172A" }}>{formatCrore(v.mb_research_value)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div style={{ padding: "12px 18px", background: "#F8FAFC", borderTop: "1px solid #F1F5F9", display: "flex", gap: 20, flexWrap: "wrap" }}>
+                        {[["Total", String(filtered.length) + " assignments"], ["Portfolio", formatCrore(mkpi.portfolio_value)], ["Buy", String(mkpi.buy_count)], ["Sell", String(mkpi.sell_count)], ["Investment", String(mkpi.investment_count)]].map(([l, v]) => (
+                          <div key={l} style={{ display: "flex", gap: 5, fontSize: 12 }}>
+                            <span style={{ color: "#94A3B8" }}>{l}:</span>
+                            <span style={{ fontWeight: 700, color: "#0F172A" }}>{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
 
         </div>
       </div>
