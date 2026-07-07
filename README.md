@@ -1,83 +1,36 @@
-# MB Research Valuation Platform
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Premium real estate valuation intelligence platform built with Next.js 15, Supabase, and Recharts.
+## Getting Started
 
-## 🚀 Deploy to Vercel (3 steps)
+First, run the development server:
 
-### Step 1 — Push to GitHub
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/mb-research.git
-git push -u origin main
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-### Step 2 — Create Supabase Project
-1. Go to [supabase.com](https://supabase.com) → New Project
-2. Open **SQL Editor** → paste contents of `SUPABASE_SCHEMA.sql` → Run
-3. Go to **Settings → API** → copy your URL and anon key
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Step 3 — Deploy on Vercel
-1. Go to [vercel.com](https://vercel.com) → New Project → Import your repo
-2. Add Environment Variables:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL      = https://xxxx.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY = your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY     = your-service-role-key
-   ```
-3. Click **Deploy** ✓
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## 📁 Project Structure
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```
-app/
-├── page.tsx                  ← Home (KPIs, charts, India map, table)
-├── about/                    ← About MB Research
-├── monthly-summary/          ← Monthly MIS reporting
-├── enquiry/                  ← Client enquiry form
-├── analyst-login/            ← Login page
-├── dashboard/                ← Protected analyst dashboard
-└── api/
-    ├── auth/login/           ← Auth endpoint
-    ├── valuations/           ← CRUD valuations
-    ├── upload/               ← Excel upload processor
-    └── enquiry/              ← Enquiry submission
+## Learn More
 
-components/
-├── Navbar.tsx
-├── Footer.tsx
-├── KPICards.tsx
-├── IndiaMap.tsx              ← Interactive SVG India map
-├── Charts.tsx                ← Recharts components
-├── DataTable.tsx
-└── UploadExcel.tsx
+To learn more about Next.js, take a look at the following resources:
 
-lib/
-├── supabase.ts               ← Supabase client
-├── analytics.ts              ← KPI & stats computation
-├── excelParser.ts            ← XLSX → Valuation[] parser
-└── store.ts                  ← Zustand global state + demo data
-```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## 🔐 Demo Login
-- Email: `analyst@mbresearch.in`
-- Password: `mbresearch2025`
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## 📊 Excel Upload Format
-| Column | Required | Values |
-|--------|----------|--------|
-| Property Name | ✓ | Text |
-| Developer Name | | Text |
-| City | ✓ | Text |
-| Property Type | ✓ | Residential / Commercial |
-| Unit Type | | Text |
-| SBUA | | Number (sq ft) |
-| Carpet Area | | Number (sq ft) |
-| Received Date | | DD/MM/YYYY |
-| Sent Date | | DD/MM/YYYY |
-| Recommendation Type | ✓ | Buy / Sell / Investment |
-| MB Research Value | ✓ | Number (INR) |
-| Month | | January…December |
-| Year | | 2024, 2025… |
-| Quarter | | Q1, Q2, Q3, Q4 |
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

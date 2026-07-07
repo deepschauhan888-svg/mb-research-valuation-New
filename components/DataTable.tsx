@@ -1,65 +1,10 @@
 "use client";
 import { Valuation } from "@/types/valuation";
 import { formatCrore } from "@/lib/analytics";
-
-const RECO: Record<string, { bg: string; color: string; border: string }> = {
-  Buy:        { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
-  Sell:       { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
-  Investment: { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
-};
-const TYPE: Record<string, { bg: string; color: string }> = {
-  Residential: { bg: "#EFF6FF", color: "#1D4ED8" },
-  Commercial:  { bg: "#F5F3FF", color: "#7C3AED" },
-};
-
-export default function DataTable({ valuations, limit = 10 }: { valuations: Valuation[]; limit?: number }) {
-  const rows = valuations.slice(0, limit);
-  return (
-    <div className="card" style={{ overflow: "hidden" }}>
-      <div style={{ padding: "24px 28px", borderBottom: "1px solid #F1F5F9" }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, color: "#0F172A" }}>Recent Valuations</h3>
-        <p style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>Latest assignments in the database</p>
-      </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#F8FAFC" }}>
-              {["Property", "City", "Type", "Recommendation", "Value"].map(h => (
-                <th key={h} style={{ textAlign: "left", padding: "12px 20px", fontSize: 11, fontWeight: 700, color: "#94A3B8", letterSpacing: "0.08em", textTransform: "uppercase", borderBottom: "1px solid #F1F5F9", whiteSpace: "nowrap" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((v, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #F8FAFC", transition: "background 0.15s" }}
-                onMouseEnter={e => e.currentTarget.style.background = "#FAFAFA"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                <td style={{ padding: "16px 20px" }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: "#0F172A" }}>{v.property_name}</div>
-                  <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>{v.developer_name}</div>
-                </td>
-                <td style={{ padding: "16px 20px", fontSize: 14, color: "#374151" }}>{v.city}</td>
-                <td style={{ padding: "16px 20px" }}>
-                  <span style={{ padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 500, background: TYPE[v.property_type]?.bg, color: TYPE[v.property_type]?.color }}>
-                    {v.property_type}
-                  </span>
-                </td>
-                <td style={{ padding: "16px 20px" }}>
-                  <span style={{ padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, background: RECO[v.recommendation_type]?.bg, color: RECO[v.recommendation_type]?.color, border: `1px solid ${RECO[v.recommendation_type]?.border}` }}>
-                    {v.recommendation_type}
-                  </span>
-                </td>
-                <td style={{ padding: "16px 20px", fontWeight: 700, fontSize: 14, color: "#0F172A", whiteSpace: "nowrap" }}>
-                  {formatCrore(v.mb_research_value)}
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: "center", padding: 48, color: "#94A3B8", fontSize: 14 }}>No valuations found.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+interface Props { valuations: Valuation[]; limit?: number; }
+const rb:Record<string,string>={Buy:"bg-emerald-50 text-emerald-700 border border-emerald-200",Sell:"bg-red-50 text-red-700 border border-red-200",Investment:"bg-amber-50 text-amber-700 border border-amber-200"};
+const tb:Record<string,string>={Residential:"bg-blue-50 text-blue-700 border border-blue-200",Commercial:"bg-purple-50 text-purple-700 border border-purple-200"};
+export default function DataTable({valuations,limit=10}:Props){
+  const rows=valuations.slice(0,limit);
+  return(<div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden"><div className="px-6 py-4 border-b border-[#F3F4F6]"><h3 className="text-sm font-semibold text-[#0F172A]">Recent Valuations</h3></div><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-[#F3F4F6]">{["Property Name","City","Type","Recommendation","Value"].map(h=><th key={h} className="text-left px-6 py-3 text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider whitespace-nowrap">{h}</th>)}</tr></thead><tbody>{rows.map((v,i)=><tr key={i} className="border-b border-[#F9FAFB] hover:bg-[#FAFAFA]"><td className="px-6 py-3.5"><div className="font-medium text-[#0F172A]">{v.property_name}</div><div className="text-xs text-[#9CA3AF]">{v.developer_name}</div></td><td className="px-6 py-3.5 text-[#374151] whitespace-nowrap">{v.city}</td><td className="px-6 py-3.5"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tb[v.property_type]||""}`}>{v.property_type}</span></td><td className="px-6 py-3.5"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${rb[v.recommendation_type]||""}`}>{v.recommendation_type}</span></td><td className="px-6 py-3.5 font-semibold text-[#0F172A] whitespace-nowrap">{formatCrore(v.mb_research_value)}</td></tr>)}{rows.length===0&&<tr><td colSpan={5} className="px-6 py-8 text-center text-sm text-[#9CA3AF]">No valuations found.</td></tr>}</tbody></table></div></div>);
 }
