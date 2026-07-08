@@ -38,29 +38,83 @@ export default function Leadership(){
       <section className="section" style={{borderBottom:"1px solid var(--border)"}}>
         <div className="wrap">
           <p className="t-label" style={{marginBottom:20}}>Leadership</p>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(32px,5vw,72px)",alignItems:"end"}}>
-            <h1 style={{fontFamily:"Cormorant Garamond,serif",fontSize:"clamp(40px,5.5vw,72px)",fontWeight:400,letterSpacing:"-0.025em",color:"var(--ink)",lineHeight:1.06}}>
-              The people<br/><em style={{fontStyle:"italic",color:"var(--faint)"}}>behind every valuation.</em>
-            </h1>
-            <p className="t-body">Senior involvement on every assignment. No junior-only outputs. Every report reflects the analyst who signed it.</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(32px,5vw,72px)",alignItems:"center"}}>
+            <div>
+              <h1 style={{fontFamily:"Cormorant Garamond,serif",fontSize:"clamp(40px,5.5vw,72px)",fontWeight:400,letterSpacing:"-0.025em",color:"var(--ink)",lineHeight:1.06,marginBottom:20}}>
+                The people<br/><em style={{fontStyle:"italic",color:"var(--faint)"}}>behind every valuation.</em>
+              </h1>
+              <p className="t-body">Senior involvement on every assignment. No junior-only outputs. Every report reflects the analyst who signed it.</p>
+            </div>
+            {/* Architectural geometric visual — subtle, premium */}
+            <div style={{position:"relative",height:"clamp(280px,35vw,400px)",borderRadius:16,overflow:"hidden",background:"var(--cream-2)",border:"1px solid var(--border)"}}>
+              {/* Layered geometric lines suggesting a building facade */}
+              <svg width="100%" height="100%" viewBox="0 0 480 380" xmlns="http://www.w3.org/2000/svg" style={{position:"absolute",inset:0}}>
+                <defs>
+                  <linearGradient id="lh-fade" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--cream-2)" stopOpacity="0"/>
+                    <stop offset="100%" stopColor="var(--cream-2)" stopOpacity="1"/>
+                  </linearGradient>
+                  <linearGradient id="lh-horiz" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="var(--cream-2)" stopOpacity="1"/>
+                    <stop offset="30%" stopColor="var(--cream-2)" stopOpacity="0"/>
+                    <stop offset="100%" stopColor="var(--cream-2)" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+
+                {/* Building structure — vertical columns */}
+                {[80,140,200,260,320,380].map((x,i)=>(
+                  <rect key={i} x={x} y={20} width={44} height={340} fill="none" stroke="rgba(12,12,11,0.06)" strokeWidth="0.8"/>
+                ))}
+                {/* Horizontal floors */}
+                {[60,100,140,180,220,260,300,340].map((y,i)=>(
+                  <line key={i} x1={80} y1={y} x2={424} y2={y} stroke="rgba(12,12,11,0.05)" strokeWidth="0.8"/>
+                ))}
+                {/* Window grid */}
+                {[80,140,200,260,320,380].flatMap((x,ci)=>
+                  [60,100,140,180,220,260,300].map((y,ri)=>(
+                    <rect key={`${ci}-${ri}`} x={x+8} y={y+8} width={28} height={24}
+                      fill={`rgba(12,12,11,${0.02 + ((ci+ri)%3)*0.015})`}
+                      stroke="rgba(12,12,11,0.04)" strokeWidth="0.5"/>
+                  ))
+                )}
+                {/* Red accent — one highlighted column */}
+                <rect x={200} y={20} width={44} height={340} fill="rgba(200,16,46,0.03)" stroke="rgba(200,16,46,0.15)" strokeWidth="0.8"/>
+                {[60,100,140,180,220,260,300].map((y,i)=>(
+                  <rect key={i} x={208} y={y+8} width={28} height={24} fill={`rgba(200,16,46,${0.04 + (i%2)*0.03})`} stroke="rgba(200,16,46,0.08)" strokeWidth="0.5"/>
+                ))}
+                {/* Fade overlays */}
+                <rect x="0" y="0" width="480" height="380" fill="url(#lh-fade)"/>
+                <rect x="0" y="0" width="480" height="380" fill="url(#lh-horiz)"/>
+              </svg>
+              {/* Overlay text */}
+              <div style={{position:"absolute",bottom:24,right:24,textAlign:"right"}}>
+                <p style={{fontFamily:"DM Mono,monospace",fontSize:10,color:"var(--faint)",letterSpacing:"0.1em",lineHeight:1.8}}>
+                  Research · Valuation<br/>Analysis · Intelligence
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
       <section className="section" ref={r1}>
         <div className="wrap">
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"clamp(32px,4vw,56px)"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"clamp(24px,3vw,40px)"}}>
             {TEAM.map(m=>(
-              <div key={m.name} className="l1" style={{opacity:0}}>
+              <div key={m.name} className="l1" style={{opacity:0,display:"flex",flexDirection:"column"}}>
                 <Portrait name={m.name} color={m.color} accent={m.accent}/>
-                <h2 style={{fontSize:24,fontWeight:400,color:"var(--ink)",marginBottom:4,fontFamily:"Cormorant Garamond,serif",letterSpacing:"-0.01em",marginTop:20}}>{m.name}</h2>
-                <p style={{fontSize:10,fontWeight:700,color:m.accent,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:16,fontFamily:"Inter,sans-serif"}}>{m.role}</p>
-                <div style={{height:1,background:"var(--border)",marginBottom:16}}/>
-                <p style={{fontSize:14,color:"var(--muted)",lineHeight:1.75,marginBottom:20,fontFamily:"Inter,sans-serif"}}>{m.bio}</p>
-                <button style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 14px",background:"var(--cream-2)",border:"1px solid var(--border)",borderRadius:7,fontSize:12,fontWeight:500,color:"var(--muted)",cursor:"pointer",fontFamily:"Inter,sans-serif",transition:"all 0.2s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.color=m.accent;}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--muted)";}}>
-                  <LI/> LinkedIn Profile
-                </button>
+                <div style={{flex:1,display:"flex",flexDirection:"column",paddingTop:22}}>
+                  <h2 style={{fontSize:24,fontWeight:400,color:"var(--ink)",marginBottom:6,fontFamily:"Cormorant Garamond,serif",letterSpacing:"-0.01em"}}>{m.name}</h2>
+                  <p style={{fontSize:10,fontWeight:700,color:m.accent,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:16,fontFamily:"Inter,sans-serif"}}>{m.role}</p>
+                  <div style={{height:1,background:"var(--border)",marginBottom:16}}/>
+                  <p style={{fontSize:14,color:"var(--muted)",lineHeight:1.75,fontFamily:"Inter,sans-serif",flex:1}}>{m.bio}</p>
+                  <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid var(--cream-2)"}}>
+                    <button style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 14px",background:"var(--cream-2)",border:"1px solid var(--border)",borderRadius:7,fontSize:12,fontWeight:500,color:"var(--muted)",cursor:"pointer",fontFamily:"Inter,sans-serif",transition:"all 0.2s"}}
+                      onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.color=m.accent;}}
+                      onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--muted)";}}>
+                      <LI/> LinkedIn Profile
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

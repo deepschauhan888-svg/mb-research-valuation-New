@@ -118,12 +118,10 @@ export default function Home() {
     (async () => {
       const gsap = (await import("gsap")).default;
       const tl = gsap.timeline({ defaults: { ease:"power4.out" } });
-      tl.fromTo(".h-badge", { opacity:0, y:14 }, { opacity:1, y:0, duration:0.7 }, 0.5)
-        .fromTo(".h-word",  { yPercent:110 }, { yPercent:0, duration:1.1, stagger:0.06 }, 0.7)
-        .fromTo(".h-sub",   { opacity:0, y:20 }, { opacity:1, y:0, duration:0.8 }, 1.5)
-        .fromTo(".h-cta",   { opacity:0, y:16 }, { opacity:1, y:0, duration:0.7 }, 1.7)
-        .fromTo(".h-stat",  { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5, stagger:0.1 }, 1.9)
-        .fromTo(".h-scr",   { opacity:0 }, { opacity:1, duration:0.6 }, 2.3);
+      tl.fromTo(".h-word",  { yPercent:110 }, { yPercent:0, duration:1.1, stagger:0.06 }, 0.4)
+        .fromTo(".h-sub",   { opacity:0, y:20 }, { opacity:1, y:0, duration:0.8 }, 1.3)
+        .fromTo(".h-cta",   { opacity:0, y:16 }, { opacity:1, y:0, duration:0.7 }, 1.55)
+        .fromTo(".h-scr",   { opacity:0 }, { opacity:1, duration:0.6 }, 2.0);
     })();
   }, []);
 
@@ -137,11 +135,6 @@ export default function Home() {
         <Cityscape/>
 
         <div className="wrap" style={{ position:"relative", zIndex:2 }}>
-          <div className="h-badge" style={{ opacity:0, display:"inline-flex", alignItems:"center", gap:10, marginBottom:32 }}>
-            <div style={{ width:28, height:1, background:"var(--red)" }}/>
-            <span style={{ fontFamily:"Inter,sans-serif", fontSize:10, fontWeight:600, color:"var(--red)", letterSpacing:"0.22em", textTransform:"uppercase" }}>Independent Valuation Research · India</span>
-          </div>
-
           <h1 style={{ fontFamily:"Cormorant Garamond,serif", fontSize:"clamp(56px,9vw,120px)", fontWeight:400, lineHeight:0.97, letterSpacing:"-0.025em", color:"#fff", marginBottom:36, maxWidth:900 }}>
             {[["Intelligence","normal","#fff"],["Behind Every","italic","rgba(255,255,255,0.55)"],["Square Foot.","normal","#fff"]].map(([line,style,color],i) => (
               <span key={i} style={{ display:"block", overflow:"hidden" }}>
@@ -167,14 +160,6 @@ export default function Home() {
             </Link>
           </div>
 
-          <div style={{ display:"flex", gap:40, paddingTop:28, borderTop:"1px solid rgba(255,255,255,0.08)", flexWrap:"wrap" }}>
-            {[["248+","Assignments"],["10","Cities"],["Independent","Research Standard"]].map(([n,l],i) => (
-              <div key={i} className="h-stat" style={{ opacity:0 }}>
-                <div style={{ fontFamily:"Cormorant Garamond,serif", fontSize:26, fontWeight:400, color:"#fff", lineHeight:1, marginBottom:4 }}>{n}</div>
-                <div style={{ fontSize:9, fontWeight:600, color:"rgba(255,255,255,0.3)", letterSpacing:"0.16em", textTransform:"uppercase", fontFamily:"Inter,sans-serif" }}>{l}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="h-scr" style={{ opacity:0, position:"absolute", right:"clamp(24px,4vw,48px)", bottom:40, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
