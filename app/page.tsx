@@ -128,7 +128,7 @@ export default function Home() {
   return (
     <>
       {/* ═══ HERO ═══ */}
-      <section ref={heroRef} className="hero-dark" style={{ minHeight:"100svh", display:"flex", flexDirection:"column", justifyContent:"flex-end", paddingBottom:"clamp(56px,7vw,100px)", position:"relative" }}>
+      <section ref={heroRef} className="hero-dark" style={{ minHeight:"100svh", display:"flex", flexDirection:"column", justifyContent:"flex-end", paddingTop:"clamp(88px,10vh,140px)", paddingBottom:"clamp(56px,7vw,100px)", position:"relative" }}>
         <div className="arch-grid"/>
         <div className="glow-orb" style={{ width:700, height:700, top:"5%", left:"50%", transform:"translateX(-50%)" }}/>
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(12,12,11,0.92) 0%, rgba(12,12,11,0.25) 55%, transparent 100%)", pointerEvents:"none" }}/>
