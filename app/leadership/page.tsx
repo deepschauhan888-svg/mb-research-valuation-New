@@ -5,25 +5,47 @@ const LI = () => (
     <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.15 1.45-2.15 2.94v5.66H9.35V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45z"/>
   </svg>
 );
-function Portrait({name,color,accent}:{name:string;color:string;accent:string}){
-  const [hov,setHov]=useState(false);
-  const initials=name.split(" ").map(w=>w[0]).join("");
-  return(
-    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{width:"100%",aspectRatio:"3/4",borderRadius:14,overflow:"hidden",position:"relative",background:`linear-gradient(160deg,${color} 0%,${accent} 100%)`,transition:"transform 0.4s cubic-bezier(0.76,0,0.24,1)",transform:hov?"scale(1.02)":"scale(1)"}}>
-      <div style={{position:"absolute",inset:0,background:"radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 60%)"}}/>
-      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-        <span style={{fontSize:52,fontWeight:400,color:"rgba(255,255,255,0.9)",fontFamily:"Cormorant Garamond,serif",letterSpacing:"-0.02em",fontStyle:"italic"}}>{initials}</span>
-        <span style={{fontSize:9,fontWeight:600,color:"rgba(255,255,255,0.4)",letterSpacing:"0.2em",textTransform:"uppercase",marginTop:8,fontFamily:"Inter,sans-serif"}}>Photo Placeholder</span>
-      </div>
-      <div style={{position:"absolute",bottom:0,left:0,right:0,height:"28%",background:"linear-gradient(to top, rgba(0,0,0,0.2) 0%, transparent 100%)"}}/>
+
+function Portrait({ name, photo }: { name: string; photo: string }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        width: "100%", aspectRatio: "3/4", borderRadius: 14,
+        overflow: "hidden", position: "relative",
+        transition: "transform 0.4s cubic-bezier(0.76,0,0.24,1)",
+        transform: hov ? "scale(1.02)" : "scale(1)",
+        background: "var(--cream-2)",
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo}
+        alt={name}
+        style={{
+          width: "100%", height: "100%",
+          objectFit: "cover",
+          objectPosition: "center top",
+          display: "block",
+          transition: "transform 0.5s cubic-bezier(0.76,0,0.24,1)",
+          transform: hov ? "scale(1.04)" : "scale(1)",
+        }}
+      />
+      {/* Subtle vignette at the bottom for smooth card integration */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, height: "18%",
+        background: "linear-gradient(to top, rgba(247,245,240,0.25) 0%, transparent 100%)",
+        pointerEvents: "none",
+      }} />
     </div>
   );
 }
 const TEAM=[
-  {name:"Prasun Kumar",role:"Chief Marketing Officer",bio:"A visionary business and marketing leader with a passion for growth, innovation, and value creation. Drives MB Research's brand strategy and institutional partnerships.",color:"#1E3A5F",accent:"#3B82F6"},
-  {name:"Abhishek Bhadra",role:"Head of Research",bio:"A real estate research leader with deep experience in market analysis, investment advisory, and strategic planning. Oversees methodology and quality across every assignment.",color:"#1F2937",accent:"#10B981"},
-  {name:"Deepak Chauhan",role:"Research Analyst",bio:"Supports valuation analysis, comparable benchmarking, and investment recommendations. Specialises in residential micro-market data and RERA transaction research.",color:"#4C1D95",accent:"#8B5CF6"},
+  { name:"Prasun Kumar",    role:"Chief Marketing Officer", bio:"A visionary business and marketing leader with a passion for growth, innovation, and value creation. Drives MB Research's brand strategy and institutional partnerships.", accent:"#3B82F6", photo:"/images/team/prasun-kumar.jpg" },
+  { name:"Abhishek Bhadra", role:"Head of Research",        bio:"A real estate research leader with deep experience in market analysis, investment advisory, and strategic planning. Oversees methodology and quality across every assignment.", accent:"#10B981", photo:"/images/team/abhishek-bhadra.jpg" },
+  { name:"Deepak Chauhan",  role:"Research Analyst",        bio:"Supports valuation analysis, comparable benchmarking, and investment recommendations. Specialises in residential micro-market data and RERA transaction research.", accent:"#8B5CF6", photo:"/images/team/deepak-chauhan.jpg" },
 ];
 function useReveal(sel:string,stagger=0.1){
   const ref=useRef<HTMLElement>(null);
@@ -101,7 +123,7 @@ export default function Leadership(){
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"clamp(24px,3vw,40px)"}}>
             {TEAM.map(m=>(
               <div key={m.name} className="l1" style={{opacity:0,display:"flex",flexDirection:"column"}}>
-                <Portrait name={m.name} color={m.color} accent={m.accent}/>
+                <Portrait name={m.name} photo={m.photo}/>
                 <div style={{flex:1,display:"flex",flexDirection:"column",paddingTop:22}}>
                   <h2 style={{fontSize:24,fontWeight:400,color:"var(--ink)",marginBottom:6,fontFamily:"Cormorant Garamond,serif",letterSpacing:"-0.01em"}}>{m.name}</h2>
                   <p style={{fontSize:10,fontWeight:700,color:m.accent,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:16,fontFamily:"Inter,sans-serif"}}>{m.role}</p>
@@ -117,10 +139,6 @@ export default function Leadership(){
                 </div>
               </div>
             ))}
-          </div>
-          <div style={{marginTop:56,padding:"18px 22px",background:"var(--cream-2)",border:"1px dashed var(--border-2)",borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:"var(--faint)",flexShrink:0}}/>
-            <p style={{fontSize:12,color:"var(--faint)",fontFamily:"Inter,sans-serif"}}>Portrait placeholders are 3:4 ratio. Replace by adding <code style={{background:"var(--border)",padding:"1px 5px",borderRadius:3,fontSize:11}}>/public/images/team/[name].jpg</code> and uncommenting the img tag in <code style={{background:"var(--border)",padding:"1px 5px",borderRadius:3,fontSize:11}}>app/leadership/page.tsx</code>.</p>
           </div>
         </div>
       </section>
