@@ -43,9 +43,9 @@ function Portrait({ name, photo }: { name: string; photo: string }) {
   );
 }
 const TEAM=[
-  { name:"Prasun Kumar",    role:"Chief Marketing Officer", bio:"A visionary business and marketing leader with a passion for growth, innovation, and value creation. Drives MB Research's brand strategy and institutional partnerships.", accent:"#3B82F6", photo:"/images/team/prasun-kumar.jpg" },
-  { name:"Abhishek Bhadra", role:"Head of Research",        bio:"A real estate research leader with deep experience in market analysis, investment advisory, and strategic planning. Oversees methodology and quality across every assignment.", accent:"#10B981", photo:"/images/team/abhishek-bhadra.jpg" },
-  { name:"Deepak Chauhan",  role:"Research Analyst",        bio:"Supports valuation analysis, comparable benchmarking, and investment recommendations. Specialises in residential micro-market data and RERA transaction research.", accent:"#8B5CF6", photo:"/images/team/deepak-chauhan.jpg" },
+  { name:"Prasun Kumar",    role:"Chief Marketing Officer", bio:"A visionary business and marketing leader with a passion for growth, innovation, and value creation. Drives MB Research's brand strategy and institutional partnerships.", accent:"#3B82F6", photo:"/images/team/prasun-kumar.jpg",  linkedin:"https://www.linkedin.com/in/mrprasunkumar/" },
+  { name:"Abhishek Bhadra", role:"Head of Research",        bio:"A real estate research leader with deep experience in market analysis, investment advisory, and strategic planning. Oversees methodology and quality across every assignment.", accent:"#10B981", photo:"/images/team/abhishek-bhadra.jpg", linkedin:"https://www.linkedin.com/in/abhishek-bhadra-68682b7" },
+  { name:"Deepak Chauhan",  role:"Research Analyst",        bio:"Supports valuation analysis, comparable benchmarking, and investment recommendations. Specialises in residential micro-market data and RERA transaction research.", accent:"#8B5CF6", photo:"/images/team/deepak-chauhan.jpg",  linkedin:"https://www.linkedin.com/in/chauhan09deepak" },
 ];
 function useReveal(sel:string,stagger=0.1){
   const ref=useRef<HTMLElement>(null);
@@ -130,11 +130,15 @@ export default function Leadership(){
                   <div style={{height:1,background:"var(--border)",marginBottom:16}}/>
                   <p style={{fontSize:14,color:"var(--muted)",lineHeight:1.75,fontFamily:"Inter,sans-serif",flex:1}}>{m.bio}</p>
                   <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid var(--cream-2)"}}>
-                    <button style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 14px",background:"var(--cream-2)",border:"1px solid var(--border)",borderRadius:7,fontSize:12,fontWeight:500,color:"var(--muted)",cursor:"pointer",fontFamily:"Inter,sans-serif",transition:"all 0.2s"}}
+                    <a
+                      href={m.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 14px",background:"var(--cream-2)",border:"1px solid var(--border)",borderRadius:7,fontSize:12,fontWeight:500,color:"var(--muted)",cursor:"pointer",fontFamily:"Inter,sans-serif",transition:"all 0.2s",textDecoration:"none"}}
                       onMouseEnter={e=>{e.currentTarget.style.borderColor=m.accent;e.currentTarget.style.color=m.accent;}}
                       onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.color="var(--muted)";}}>
                       <LI/> LinkedIn Profile
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
